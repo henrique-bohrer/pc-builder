@@ -70,6 +70,43 @@
         }
         #victory-screen button:hover { background: #fff; }
 
+        /* Configuration Screen */
+        #config-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: #111;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+        }
+        #config-screen h2 {
+            font-size: 36px; margin-bottom: 30px; text-transform: uppercase; color: #0ff;
+            text-shadow: 0 0 20px #0ff;
+        }
+        .config-group { margin-bottom: 20px; text-align: left; width: 300px; }
+        .config-group label { display: block; margin-bottom: 5px; color: #aaa; }
+        .config-group select {
+            width: 100%; padding: 10px; background: #222; border: 1px solid #444; color: #fff;
+            font-size: 16px; border-radius: 5px;
+        }
+        #start-btn {
+            margin-top: 30px;
+            padding: 15px 40px;
+            font-size: 20px;
+            background: #0ff;
+            color: #000;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+            transition: all 0.2s;
+        }
+        #start-btn:hover { background: #fff; box-shadow: 0 0 30px rgba(0, 255, 255, 0.8); }
+
         #tooltip {
             position: absolute;
             background: rgba(0,0,0,0.8);
@@ -94,7 +131,38 @@
 </head>
 <body>
 
-    <div id="ui-layer">
+    <div id="config-screen">
+        <h2>Nova Montagem</h2>
+
+        <div class="config-group">
+            <label>Tipo de PC</label>
+            <select id="pc-type">
+                <option value="gamer">Gamer (Alto Desempenho)</option>
+                <option value="casual">Casual (Uso Doméstico)</option>
+                <option value="office">Escritório (Básico)</option>
+            </select>
+        </div>
+
+        <div class="config-group">
+            <label>Teclado</label>
+            <select id="kb-type">
+                <option value="mechanical">Mecânico RGB</option>
+                <option value="standard">Padrão</option>
+            </select>
+        </div>
+
+        <div class="config-group">
+            <label>Mouse</label>
+            <select id="mouse-type">
+                <option value="gaming">Gamer</option>
+                <option value="standard">Padrão</option>
+            </select>
+        </div>
+
+        <button id="start-btn">Iniciar Montagem</button>
+    </div>
+
+    <div id="ui-layer" style="display:none;">
         <h1>PC Builder <span style="color:#ff00de">Sim</span></h1>
         <p style="font-size: 12px; margin-bottom: 15px; color: #ccc;">Clique nas peças holográficas para montar.</p>
         <ul class="task-list" id="task-list">
@@ -180,247 +248,250 @@
         // Estado do Jogo
         let currentStepIndex = 0;
         const installedParts = [];
+        let gameConfig = { type: 'gamer', keyboard: 'mechanical', mouse: 'gaming' };
 
         // Definição das Peças
-        // Cada peça tem: geometria, material, posição, rotação e nome
-        const partsConfig = [
-            {
+        let partsConfig = [];
+
+        function generatePartsConfig(settings) {
+            const list = [];
+
+            // --- GABINETE ---
+            let caseColor = 0x222222;
+            let caseGlassOpacity = 0.3;
+            if(settings.type === 'office') { caseColor = 0xcccccc; caseGlassOpacity = 0.0; } // Office cinza e fechado? Vamos deixar vidro para todos mas mudar cor
+            if(settings.type === 'casual') { caseColor = 0xffffff; }
+
+            list.push({
                 id: 'case',
                 name: 'Gabinete (Torre)',
-                type: 'base', // Peça inicial
+                type: 'base',
                 geometry: () => {
-                    // Grupo complexo para o gabinete
                     const group = new THREE.Group();
-
-                    // Estrutura principal (vazada)
-                    const mat = new THREE.MeshStandardMaterial({ color: 0x222222, metalness: 0.8, roughness: 0.2 });
-                    const glass = new THREE.MeshPhysicalMaterial({
-                        color: 0x88ccff, metalness: 0.1, roughness: 0, transmission: 0.5, transparent: true, opacity: 0.3
-                    });
-
+                    const mat = new THREE.MeshStandardMaterial({ color: caseColor, metalness: 0.5, roughness: 0.5 });
                     // Fundo
-                    const back = new THREE.Mesh(new THREE.BoxGeometry(1, 12, 12), mat);
-                    back.position.set(-2, 6, 0);
-                    back.castShadow = true; back.receiveShadow = true;
-                    group.add(back);
-
+                    const back = new THREE.Mesh(new THREE.BoxGeometry(1, 12, 12), mat); back.position.set(-2, 6, 0);
+                    back.castShadow = true; back.receiveShadow = true; group.add(back);
                     // Base
-                    const bottom = new THREE.Mesh(new THREE.BoxGeometry(5, 1, 12), mat);
-                    bottom.position.set(0, 0.5, 0);
-                    bottom.castShadow = true;
-                    group.add(bottom);
-
+                    const bottom = new THREE.Mesh(new THREE.BoxGeometry(5, 1, 12), mat); bottom.position.set(0, 0.5, 0);
+                    bottom.castShadow = true; group.add(bottom);
                     // Topo
-                    const top = new THREE.Mesh(new THREE.BoxGeometry(5, 1, 12), mat);
-                    top.position.set(0, 11.5, 0);
-                    top.castShadow = true;
-                    group.add(top);
-
+                    const top = new THREE.Mesh(new THREE.BoxGeometry(5, 1, 12), mat); top.position.set(0, 11.5, 0);
+                    top.castShadow = true; group.add(top);
                     // Frente
-                    const front = new THREE.Mesh(new THREE.BoxGeometry(5, 12, 1), mat);
-                    front.position.set(0, 6, 5.5);
-                    front.castShadow = true;
-                    group.add(front);
-
+                    const front = new THREE.Mesh(new THREE.BoxGeometry(5, 12, 1), mat); front.position.set(0, 6, 5.5);
+                    front.castShadow = true; group.add(front);
                     return group;
                 },
                 position: { x: 0, y: 0, z: 0 }
-            },
-            {
+            });
+
+            // --- MOTHERBOARD ---
+            list.push({
                 id: 'motherboard',
                 name: 'Placa-mãe (ATX)',
                 type: 'part',
                 geometry: () => {
                     const group = new THREE.Group();
-                    // PCB
-                    const pcb = new THREE.Mesh(
-                        new THREE.BoxGeometry(0.2, 9, 9),
-                        new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.5 }) // PCB Preto fosco
-                    );
-
-                    // Detalhes da placa (VRM, Chipset - blocos decorativos)
-                    const chipset = new THREE.Mesh(
-                        new THREE.BoxGeometry(0.3, 2, 2),
-                        new THREE.MeshStandardMaterial({ color: 0x555555, metalness: 0.8 })
-                    );
+                    const pcb = new THREE.Mesh(new THREE.BoxGeometry(0.2, 9, 9), new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.5 }));
+                    const chipset = new THREE.Mesh(new THREE.BoxGeometry(0.3, 2, 2), new THREE.MeshStandardMaterial({ color: 0x555555, metalness: 0.8 }));
                     chipset.position.set(0.1, -2, 2);
-
-                    const ioShield = new THREE.Mesh(
-                        new THREE.BoxGeometry(0.5, 8, 1),
-                        new THREE.MeshStandardMaterial({ color: 0xaaaaaa })
-                    );
+                    const ioShield = new THREE.Mesh(new THREE.BoxGeometry(0.5, 8, 1), new THREE.MeshStandardMaterial({ color: 0xaaaaaa }));
                     ioShield.position.set(0, 0, -4);
-
-                    group.add(pcb);
-                    group.add(chipset);
-                    group.add(ioShield);
-
-                    // Circuitos (Textura processual simples usando canvas seria ideal, mas usaremos geometria simples)
+                    group.add(pcb); group.add(chipset); group.add(ioShield);
                     return group;
                 },
-                position: { x: -1.4, y: 6, z: 0 } // Dentro do gabinete
-            },
-            {
+                position: { x: -1.4, y: 6, z: 0 }
+            });
+
+            // --- CPU ---
+            list.push({
                 id: 'cpu',
                 name: 'Processador (CPU)',
                 type: 'part',
                 geometry: () => {
-                    return new THREE.Mesh(
-                        new THREE.BoxGeometry(0.3, 1.5, 1.5),
-                        new THREE.MeshStandardMaterial({ color: 0xc0c0c0, metalness: 1, roughness: 0.3 })
-                    );
+                    return new THREE.Mesh(new THREE.BoxGeometry(0.3, 1.5, 1.5), new THREE.MeshStandardMaterial({ color: 0xc0c0c0, metalness: 1, roughness: 0.3 }));
                 },
-                position: { x: -1.2, y: 7.5, z: 1 } // Posição no socket
-            },
-            {
+                position: { x: -1.2, y: 7.5, z: 1 }
+            });
+
+            // --- RAM ---
+            // Gamer: RGB vermelho; Office: Verde simples; Casual: Preto
+            let ramColor = 0x006400; // Verde padrão
+            let ramEmissive = 0x000000;
+            if(settings.type === 'gamer') { ramColor = 0xff0000; ramEmissive = 0x550000; }
+            if(settings.type === 'casual') { ramColor = 0x111111; }
+
+            list.push({
                 id: 'ram',
-                name: 'Memória RAM (2x 16GB)',
+                name: 'Memória RAM (2x)',
                 type: 'part',
                 geometry: () => {
                     const group = new THREE.Group();
-                    const stick1 = new THREE.Mesh(new THREE.BoxGeometry(0.3, 4, 0.2), new THREE.MeshStandardMaterial({color: 0xff0000, emissive: 0x550000}));
-                    const stick2 = new THREE.Mesh(new THREE.BoxGeometry(0.3, 4, 0.2), new THREE.MeshStandardMaterial({color: 0xff0000, emissive: 0x550000}));
-                    stick1.position.z = 0;
-                    stick2.position.z = 0.5;
-                    group.add(stick1);
-                    group.add(stick2);
+                    const stick1 = new THREE.Mesh(new THREE.BoxGeometry(0.3, 4, 0.2), new THREE.MeshStandardMaterial({color: ramColor, emissive: ramEmissive}));
+                    const stick2 = new THREE.Mesh(new THREE.BoxGeometry(0.3, 4, 0.2), new THREE.MeshStandardMaterial({color: ramColor, emissive: ramEmissive}));
+                    stick1.position.z = 0; stick2.position.z = 0.5;
+                    group.add(stick1); group.add(stick2);
                     return group;
                 },
-                position: { x: -1.0, y: 7.5, z: 2.5 } // Slots de RAM
-            },
-            {
+                position: { x: -1.0, y: 7.5, z: 2.5 }
+            });
+
+            // --- SSD ---
+            list.push({
                 id: 'ssd',
                 name: 'SSD NVMe M.2',
                 type: 'part',
                 geometry: () => {
-                    return new THREE.Mesh(
-                        new THREE.BoxGeometry(0.2, 0.8, 3),
-                        new THREE.MeshStandardMaterial({ color: 0x111111 })
-                    );
+                    return new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.8, 3), new THREE.MeshStandardMaterial({ color: 0x111111 }));
                 },
-                position: { x: -1.2, y: 5.5, z: 1 } // Slot M.2 abaixo da CPU
-            },
-            {
+                position: { x: -1.2, y: 5.5, z: 1 }
+            });
+
+            // --- COOLER ---
+            // Gamer: Tower RGB; Office: Low Profile; Casual: Tower simples
+            list.push({
                 id: 'cooler',
-                name: 'CPU Cooler (RGB)',
+                name: 'CPU Cooler',
                 type: 'part',
                 geometry: () => {
                     const group = new THREE.Group();
-                    const block = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.5, 1, 32), new THREE.MeshStandardMaterial({color: 0x222222}));
-                    block.rotation.z = Math.PI / 2;
+                    if(settings.type === 'office') {
+                        // Low profile
+                        const block = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.5, 0.5, 32), new THREE.MeshStandardMaterial({color: 0xaaaaaa}));
+                        block.rotation.z = Math.PI / 2;
+                        const fan = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.4, 0.1, 32), new THREE.MeshStandardMaterial({color: 0x333333}));
+                        fan.rotation.z = Math.PI / 2; fan.position.x = 0.3;
+                        group.add(block); group.add(fan);
+                    } else {
+                        // Tower
+                        const block = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.5, 1, 32), new THREE.MeshStandardMaterial({color: 0x222222}));
+                        block.rotation.z = Math.PI / 2;
 
-                    // Ventoinha RGB
-                    const fan = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.4, 0.1, 32), new THREE.MeshStandardMaterial({color: 0xffffff, emissive: 0x00ffff, emissiveIntensity: 1}));
-                    fan.rotation.z = Math.PI / 2;
-                    fan.position.x = 0.55;
+                        let fanColor = 0xffffff;
+                        let fanEmissive = 0x000000;
+                        if(settings.type === 'gamer') { fanEmissive = 0x00ffff; } // RGB
 
-                    group.add(block);
-                    group.add(fan);
+                        const fan = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.4, 0.1, 32), new THREE.MeshStandardMaterial({color: fanColor, emissive: fanEmissive, emissiveIntensity: 1}));
+                        fan.rotation.z = Math.PI / 2; fan.position.x = 0.55;
+                        group.add(block); group.add(fan);
+                    }
                     return group;
                 },
-                position: { x: -0.5, y: 7.5, z: 1 } // Em cima da CPU
-            },
-            {
+                position: { x: -0.5, y: 7.5, z: 1 }
+            });
+
+            // --- PSU ---
+            list.push({
                 id: 'psu',
-                name: 'Fonte de Alimentação (PSU)',
+                name: 'Fonte de Alimentação',
                 type: 'part',
                 geometry: () => {
-                    return new THREE.Mesh(
-                        new THREE.BoxGeometry(4, 2.5, 4),
-                        new THREE.MeshStandardMaterial({ color: 0x111111 })
-                    );
+                    return new THREE.Mesh(new THREE.BoxGeometry(4, 2.5, 4), new THREE.MeshStandardMaterial({ color: 0x111111 }));
                 },
-                position: { x: 0, y: 2.3, z: -3.5 } // Parte inferior traseira
-            },
-            {
-                id: 'gpu',
-                name: 'Placa de Vídeo (GPU)',
-                type: 'part',
-                geometry: () => {
-                    const group = new THREE.Group();
-                    // Corpo da GPU
-                    const body = new THREE.Mesh(
-                        new THREE.BoxGeometry(1, 2, 8),
-                        new THREE.MeshStandardMaterial({ color: 0x333333 })
-                    );
+                position: { x: 0, y: 2.3, z: -3.5 }
+            });
 
-                    // Fans decorativas
-                    const fanGeo = new THREE.CylinderGeometry(0.8, 0.8, 0.1, 16);
-                    const fanMat = new THREE.MeshStandardMaterial({ color: 0x111111 });
+            // --- GPU ---
+            // Office: Sem GPU dedicada (Integrada)
+            if(settings.type !== 'office') {
+                list.push({
+                    id: 'gpu',
+                    name: 'Placa de Vídeo (GPU)',
+                    type: 'part',
+                    geometry: () => {
+                        const group = new THREE.Group();
+                        const body = new THREE.Mesh(new THREE.BoxGeometry(1, 2, 8), new THREE.MeshStandardMaterial({ color: 0x333333 }));
 
-                    const f1 = new THREE.Mesh(fanGeo, fanMat); f1.rotation.z = Math.PI/2; f1.position.x = 0.5; f1.position.z = -2;
-                    const f2 = new THREE.Mesh(fanGeo, fanMat); f2.rotation.z = Math.PI/2; f2.position.x = 0.5; f2.position.z = 0;
-                    const f3 = new THREE.Mesh(fanGeo, fanMat); f3.rotation.z = Math.PI/2; f3.position.x = 0.5; f3.position.z = 2;
+                        // Fans
+                        const fanGeo = new THREE.CylinderGeometry(0.8, 0.8, 0.1, 16);
+                        const fanMat = new THREE.MeshStandardMaterial({ color: 0x111111 });
+                        const f1 = new THREE.Mesh(fanGeo, fanMat); f1.rotation.z = Math.PI/2; f1.position.x = 0.5; f1.position.z = -2;
+                        const f2 = new THREE.Mesh(fanGeo, fanMat); f2.rotation.z = Math.PI/2; f2.position.x = 0.5; f2.position.z = 0;
+                        const f3 = new THREE.Mesh(fanGeo, fanMat); f3.rotation.z = Math.PI/2; f3.position.x = 0.5; f3.position.z = 2;
 
-                    // Strip RGB
-                    const rgbStrip = new THREE.Mesh(new THREE.BoxGeometry(1.05, 0.1, 8), new THREE.MeshStandardMaterial({color: 0xffffff, emissive: 0xff00de}));
-                    rgbStrip.position.y = 1;
+                        group.add(body); group.add(f1); group.add(f2); group.add(f3);
 
-                    group.add(body);
-                    group.add(f1); group.add(f2); group.add(f3);
-                    group.add(rgbStrip);
-                    return group;
-                },
-                position: { x: -0.5, y: 5, z: 0 } // Slot PCIe
-            },
-            {
+                        if(settings.type === 'gamer') {
+                            const rgbStrip = new THREE.Mesh(new THREE.BoxGeometry(1.05, 0.1, 8), new THREE.MeshStandardMaterial({color: 0xffffff, emissive: 0xff00de}));
+                            rgbStrip.position.y = 1;
+                            group.add(rgbStrip);
+                        }
+
+                        return group;
+                    },
+                    position: { x: -0.5, y: 5, z: 0 }
+                });
+            }
+
+            // --- PAINEL DE VIDRO/LATERAL ---
+            list.push({
                 id: 'glass_panel',
-                name: 'Painel de Vidro',
+                name: settings.type === 'office' ? 'Painel Lateral' : 'Painel de Vidro',
                 type: 'part',
                 geometry: () => {
-                    return new THREE.Mesh(
-                        new THREE.BoxGeometry(0.1, 11, 11),
-                        new THREE.MeshPhysicalMaterial({
-                            color: 0xaaaaaa, metalness: 0, roughness: 0, transmission: 0.9, transparent: true, opacity: 0.3
-                        })
-                    );
+                    let material;
+                    if(settings.type === 'office') {
+                        // Painel solido
+                        material = new THREE.MeshStandardMaterial({ color: caseColor, metalness: 0.5, roughness: 0.5 });
+                    } else {
+                        // Vidro
+                        material = new THREE.MeshPhysicalMaterial({ color: 0xaaaaaa, metalness: 0, roughness: 0, transmission: 0.9, transparent: true, opacity: 0.3 });
+                    }
+                    return new THREE.Mesh(new THREE.BoxGeometry(0.1, 11, 11), material);
                 },
-                position: { x: 2.5, y: 6.5, z: 0 } // Fecha o gabinete
-            },
-            {
+                position: { x: 2.5, y: 6.5, z: 0 }
+            });
+
+            // --- PERIFÉRICOS ---
+            list.push({
                 id: 'peripherals',
-                name: 'Periféricos (Monitor, Teclado, Mouse)',
+                name: 'Periféricos',
                 type: 'part',
                 geometry: () => {
                     const group = new THREE.Group();
 
                     // Monitor
                     const screen = new THREE.Mesh(new THREE.BoxGeometry(0.5, 9, 16), new THREE.MeshStandardMaterial({color: 0x111111}));
-                    const display = new THREE.Mesh(new THREE.PlaneGeometry(15, 8), new THREE.MeshBasicMaterial({color: 0x0000ff})); // Tela azul inicial
-                    display.rotation.y = -Math.PI/2;
-                    display.position.x = -0.3;
-                    screen.add(display);
-
+                    const display = new THREE.Mesh(new THREE.PlaneGeometry(15, 8), new THREE.MeshBasicMaterial({color: 0x0000ff}));
+                    display.rotation.y = -Math.PI/2; display.position.x = -0.3; screen.add(display);
                     const stand = new THREE.Mesh(new THREE.BoxGeometry(2, 6, 2), new THREE.MeshStandardMaterial({color: 0x222222}));
-                    stand.position.y = -5;
-                    screen.add(stand);
-
-                    screen.position.set(10, 5, 0);
-                    screen.rotation.y = -Math.PI / 6; // Levemente virado
+                    stand.position.y = -5; screen.add(stand);
+                    screen.position.set(10, 5, 0); screen.rotation.y = -Math.PI / 6;
+                    group.add(screen);
 
                     // Teclado
-                    const kb = new THREE.Mesh(new THREE.BoxGeometry(4, 0.5, 10), new THREE.MeshStandardMaterial({color: 0x222222}));
-                    // RGB Teclado
-                    const kbLight = new THREE.PointLight(0x00ff00, 1, 5);
-                    kbLight.position.y = 1;
-                    kb.add(kbLight);
-                    kb.position.set(8, 0.5, 10);
-                    kb.rotation.y = -Math.PI / 6;
+                    const kb = new THREE.Mesh(new THREE.BoxGeometry(4, 0.5, 10), new THREE.MeshStandardMaterial({color: settings.keyboard === 'mechanical' ? 0x222222 : 0xdddddd}));
+                    kb.position.set(8, 0.5, 10); kb.rotation.y = -Math.PI / 6;
+
+                    if(settings.keyboard === 'mechanical') {
+                        const kbLight = new THREE.PointLight(0x00ff00, 1, 5); kbLight.position.y = 1; kb.add(kbLight);
+                    }
+                    group.add(kb);
 
                     // Mouse
-                    const mouseObj = new THREE.Mesh(new THREE.CapsuleGeometry(1, 2, 4, 8), new THREE.MeshStandardMaterial({color: 0x333333}));
-                    mouseObj.rotation.x = Math.PI / 2;
-                    mouseObj.rotation.z = -Math.PI / 6;
+                    let mouseGeo;
+                    if(settings.mouse === 'gaming') {
+                         mouseGeo = new THREE.CapsuleGeometry(1, 2, 4, 8);
+                    } else {
+                         mouseGeo = new THREE.BoxGeometry(1.5, 1, 3);
+                    }
+                    const mouseObj = new THREE.Mesh(mouseGeo, new THREE.MeshStandardMaterial({color: settings.mouse === 'gaming' ? 0x333333 : 0xeeeeee}));
+                    if(settings.mouse === 'gaming') {
+                        mouseObj.rotation.x = Math.PI / 2; mouseObj.rotation.z = -Math.PI / 6;
+                    } else {
+                        mouseObj.rotation.y = -Math.PI / 6;
+                    }
                     mouseObj.position.set(8, 0.5, 18);
-
-                    group.add(screen);
-                    group.add(kb);
                     group.add(mouseObj);
+
                     return group;
                 },
-                position: { x: 10, y: 0, z: 10 } // Na mesa ao lado
-            }
-        ];
+                position: { x: 10, y: 0, z: 10 }
+            });
+
+            return list;
+        }
 
         // --- Configuração da UI e Inicialização ---
 
@@ -661,12 +732,22 @@
             renderer.render(scene, camera);
         }
 
-        // Start
-        initUI();
-        // Pré-instala a primeira peça (Gabinete) se quiser que comece com ela,
-        // mas o jogo pede para clicar. Vamos deixar o usuário clicar no gabinete fantasma primeiro para começar.
-        // Se preferir que o gabinete já exista, chamaria installPart() uma vez aqui.
-        // Vamos deixar o usuário clicar para criar a base.
+        // Start Game Logic
+        document.getElementById('start-btn').addEventListener('click', () => {
+            gameConfig.type = document.getElementById('pc-type').value;
+            gameConfig.keyboard = document.getElementById('kb-type').value;
+            gameConfig.mouse = document.getElementById('mouse-type').value;
+
+            document.getElementById('config-screen').style.display = 'none';
+            document.getElementById('ui-layer').style.display = 'block';
+
+            // Gera a lista de peças baseada nas escolhas
+            partsConfig = generatePartsConfig(gameConfig);
+
+            initUI();
+        });
+
+        // initUI(); // Called by button now
 
         animate();
 

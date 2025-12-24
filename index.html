@@ -40,6 +40,7 @@
     <ul class="nav-links">
       <li class="nav-item active" id="nav-dashboard" onclick="navigateTo('view-dashboard')"><i class="fas fa-chart-pie"></i> Dashboard</li>
       <li class="nav-item" id="nav-sellers" onclick="navigateTo('view-sellers')"><i class="fas fa-users"></i> Vendedores</li>
+      <li class="nav-item" id="nav-clients" onclick="navigateTo('view-clients')"><i class="fas fa-address-book"></i> Clientes</li>
       <li class="nav-item" id="nav-reports" onclick="navigateTo('view-reports')"><i class="fas fa-file-invoice-dollar"></i> Relatórios</li>
       <li class="nav-item" onclick="openModal('settingsModal')"><i class="fas fa-cog"></i> Configurar Empresa</li>
       <li class="nav-item" onclick="openModal('integrationModal')"><i class="fas fa-plug"></i> Integrações</li>
@@ -151,6 +152,31 @@
         </div>
     </section>
 
+    <!-- VIEW: CLIENTES -->
+    <section id="view-clients" class="hidden">
+        <div class="controls-bar" style="justify-content: flex-end;">
+            <button onclick="openModal('clientModal')" style="background: var(--brand-primary); color: white; border: none; padding: 10px 20px; border-radius: var(--radius); cursor: pointer; font-weight: 500; display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-plus"></i> Novo Cliente
+            </button>
+        </div>
+        <div class="table-container">
+            <table id="clientsTable">
+                <thead>
+                    <tr>
+                        <th>Cliente / Empresa</th>
+                        <th>Contato</th>
+                        <th>Status</th>
+                        <th>Volume de Compras</th>
+                        <th>Última Interação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Injected via JS -->
+                </tbody>
+            </table>
+        </div>
+    </section>
+
     <!-- VIEW: RELATÓRIOS -->
     <section id="view-reports" class="hidden">
         <div class="controls-bar">
@@ -176,6 +202,39 @@
     </section>
 
   </main>
+
+  <!-- Modal: Cadastrar Cliente -->
+  <div class="modal" id="clientModal">
+    <div class="modal-content">
+      <h2 style="margin-bottom: 1.5rem;">Novo Cliente</h2>
+
+      <div class="form-group">
+        <label>Nome do Cliente / Empresa</label>
+        <input type="text" id="clientNameInput" placeholder="Ex: Tech Solutions Ltda">
+      </div>
+      <div class="form-group">
+        <label>Email de Contato</label>
+        <input type="email" id="clientEmailInput" placeholder="contato@empresa.com">
+      </div>
+      <div class="form-group">
+        <label>Telefone</label>
+        <input type="text" id="clientPhoneInput" placeholder="(11) 99999-9999">
+      </div>
+      <div class="form-group">
+        <label>Status</label>
+        <select id="clientStatusInput" style="width: 100%; padding: 10px; background: var(--bg-input); color: white; border: 1px solid var(--border-color); border-radius: 8px;">
+            <option value="Active">Ativo</option>
+            <option value="Lead">Lead</option>
+            <option value="Inactive">Inativo</option>
+        </select>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeModal('clientModal')">Cancelar</button>
+        <button class="btn-save" onclick="saveClient()">Salvar Cliente</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Modal: Configuração da Empresa (Whitelabel) -->
   <div class="modal" id="settingsModal">

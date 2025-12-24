@@ -12,6 +12,11 @@
         { id: 4, seller: "Carlos M.", role: "Account Exec", avatar: "https://i.pravatar.cc/150?u=3", client: "Startup X", value: 12000, source: "API", status: "Completed", date: "2023-10-06" },
         { id: 5, seller: "Ana Silva", role: "SDR", avatar: "https://i.pravatar.cc/150?u=2", client: "Padaria Central", value: 5000, source: "CSV", status: "Completed", date: "2023-10-07" },
       ],
+      clients: [
+        { id: 1, name: "Tech Solutions", email: "contact@techsolutions.com", phone: "(11) 98765-4321", status: "Active", since: "2023-01-15" },
+        { id: 2, name: "Big Corp", email: "procurement@bigcorp.com", phone: "(11) 3000-0000", status: "Active", since: "2023-02-10" },
+        { id: 3, name: "Mercado Local", email: "gerente@mercadolocal.com", phone: "(11) 91234-5678", status: "Active", since: "2023-05-20" }
+      ],
       config: {
         companyName: "Vortex CRM",
         brandColor: "#6366f1",
@@ -36,7 +41,7 @@
     // --- NAVEGAÇÃO DE VIEWS ---
     function navigateTo(viewId) {
         // Esconde todas as views
-        const views = ['view-dashboard', 'view-sellers', 'view-reports'];
+        const views = ['view-dashboard', 'view-sellers', 'view-clients', 'view-reports'];
         views.forEach(id => {
             document.getElementById(id).classList.add('hidden');
         });
@@ -50,6 +55,7 @@
         const navMap = {
             'view-dashboard': 'nav-dashboard',
             'view-sellers': 'nav-sellers',
+            'view-clients': 'nav-clients',
             'view-reports': 'nav-reports'
         };
 
@@ -62,6 +68,7 @@
         const titles = {
             'view-dashboard': 'Dashboard de Vendas',
             'view-sellers': 'Ranking de Vendedores',
+            'view-clients': 'Gestão de Clientes',
             'view-reports': 'Relatórios de Performance'
         };
         document.getElementById('pageTitleText').innerText = titles[viewId];
@@ -69,9 +76,84 @@
         // Carrega dados específicos da view
         if (viewId === 'view-sellers') {
             renderSellersView();
+        } else if (viewId === 'view-clients') {
+            renderClientsView();
         } else if (viewId === 'view-reports') {
             renderReportsView();
         }
+    }
+
+    // --- VIEW: CLIENTES ---
+    function renderClientsView() {
+        const tbody = document.querySelector('#clientsTable tbody');
+        tbody.innerHTML = '';
+        const fmt = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+
+        state.clients.forEach(client => {
+            // Calcular volume de compras
+            const totalBuys = state.sales
+                .filter(s => s.client === client.name && s.status === 'Completed')
+                .reduce((acc, curr) => acc + curr.value, 0);
+
+            // Encontrar última compra
+            const clientSales = state.sales
+                .filter(s => s.client === client.name)
+                .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            const lastInteraction = clientSales.length > 0 ? clientSales[0].date : client.since;
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>
+                    <div style="font-weight: 600;">${client.name}</div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">Desde: ${client.since}</div>
+                </td>
+                <td>
+                    <div>${client.email}</div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">${client.phone}</div>
+                </td>
+                <td>
+                    <span class="status-pill" style="background: ${client.status === 'Active' ? 'rgba(34, 197, 94, 0.15)' : 'rgba(148, 163, 184, 0.15)'}; color: ${client.status === 'Active' ? '#4ade80' : '#94a3b8'};">
+                        ${client.status === 'Active' ? 'Ativo' : client.status}
+                    </span>
+                </td>
+                <td style="font-weight: 600;">${fmt.format(totalBuys)}</td>
+                <td style="font-size: 0.9rem; color: var(--text-muted);">${lastInteraction}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function saveClient() {
+        const name = document.getElementById('clientNameInput').value;
+        const email = document.getElementById('clientEmailInput').value;
+        const phone = document.getElementById('clientPhoneInput').value;
+        const status = document.getElementById('clientStatusInput').value;
+
+        if (!name) {
+            alert("Nome do cliente é obrigatório.");
+            return;
+        }
+
+        const newClient = {
+            id: state.clients.length + 1,
+            name: name,
+            email: email || "N/A",
+            phone: phone || "N/A",
+            status: status,
+            since: new Date().toISOString().split('T')[0]
+        };
+
+        state.clients.unshift(newClient);
+        renderClientsView();
+        closeModal('clientModal');
+
+        // Limpa form
+        document.getElementById('clientNameInput').value = '';
+        document.getElementById('clientEmailInput').value = '';
+        document.getElementById('clientPhoneInput').value = '';
+
+        alert("Cliente cadastrado com sucesso!");
     }
 
     // --- VIEW: VENDEDORES ---

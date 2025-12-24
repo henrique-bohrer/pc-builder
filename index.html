@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vortex CRM | Sales Dashboard</title>
+
+  <!-- Google Fonts: Inter para UI moderna -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- FontAwesome para Ícones -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+  <style>
+    /* * DESIGN SYSTEM & THEME ENGINE
+         * Usamos variáveis CSS para permitir a personalização (Whitelabel) em tempo real.
+         */
+    :root {
+      /* Cores Base - Dark Mode Moderno */
+      --bg-body: #0f172a;
+      /* Slate 900 */
+      --bg-sidebar: #1e293b;
+      /* Slate 800 */
+      --bg-card: #1e293b;
+      --bg-input: #334155;
+
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border-color: #334155;
+
+      /* Variáveis de Marca (Customizáveis pela Empresa) */
+      --brand-primary: #6366f1;
+      /* Indigo 500 (Default) */
+      --brand-accent: #818cf8;
+
+      /* Utilitários */
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --radius: 12px;
+      --transition: all 0.3s ease;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-body);
+      color: var(--text-main);
+      display: flex;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* --- SIDEBAR --- */
+    .sidebar {
+      width: 260px;
+      background-color: var(--bg-sidebar);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      padding: 1.5rem;
+      position: fixed;
+      height: 100%;
+      z-index: 10;
+      transition: var(--transition);
+    }
+
+    .company-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 3rem;
+    }
+
+    .company-logo-img {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      background: var(--brand-primary);
+      object-fit: cover;
+    }
+
+    .company-name {
+      font-weight: 700;
+      font-size: 1.1rem;
+      letter-spacing: -0.5px;
+    }
+
+    .nav-links {
+      list-style: none;
+    }
+
+    .nav-links li {
+      margin-bottom: 0.5rem;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      border-radius: var(--radius);
+      color: var(--text-muted);
+      text-decoration: none;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .nav-item:hover,
+    .nav-item.active {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--brand-primary);
+    }
+
+    .nav-item i {
+      width: 20px;
+      text-align: center;
+    }
+
+    .sponsors-area {
+      margin-top: auto;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .sponsor-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+
+    .sponsor-list {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .sponsor-badge {
+      background: #334155;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+    }
+
+    /* --- MAIN CONTENT --- */
+    .main-content {
+      flex: 1;
+      margin-left: 260px;
+      /* Sidebar width */
+      padding: 2rem;
+      width: calc(100% - 260px);
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .page-title h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+    }
+
+    .page-title p {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-top: 4px;
+    }
+
+    .header-actions button {
+      background: var(--brand-primary);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: var(--transition);
+    }
+
+    .header-actions button:hover {
+      filter: brightness(1.1);
+      box-shadow: 0 0 15px var(--brand-primary);
+    }
+
+    /* --- EMPLOYEE OF THE MONTH (Gamification) --- */
+    .gamification-section {
+      margin-bottom: 2.5rem;
+    }
+
+    .hero-card {
+      background: linear-gradient(135deg, var(--bg-card) 0%, rgba(30, 41, 59, 0.8) 100%);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-card.winner-active {
+      border: 1px solid var(--brand-primary);
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, var(--bg-card) 100%);
+    }
+
+    .hero-content {
+      z-index: 2;
+      max-width: 60%;
+    }
+
+    .hero-badge {
+      background: rgba(255, 215, 0, 0.15);
+      color: #fbbf24;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 1rem;
+      border: 1px solid rgba(255, 215, 0, 0.3);
+    }
+
+    .hero-stats h2 {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .hero-stats span {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+    }
+
+    .hero-stats strong {
+      color: var(--text-main);
+    }
+
+    .hero-avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      border: 4px solid var(--brand-primary);
+      object-fit: cover;
+      box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+      z-index: 2;
+    }
+
+    .confetti-bg {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 100%;
+      height: 100%;
+      background-image: radial-gradient(var(--brand-primary) 1px, transparent 1px);
+      background-size: 20px 20px;
+      opacity: 0.1;
+      z-index: 1;
+    }
+
+    /* --- FILTERS & TOOLS --- */
+    .controls-bar {
+      background: var(--bg-card);
+      padding: 1rem;
+      border-radius: var(--radius);
+      margin-bottom: 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: center;
+      border: 1px solid var(--border-color);
+    }
+
+    .search-box {
+      flex: 1;
+      position: relative;
+      min-width: 250px;
+    }
+
+    .search-box i {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 10px 10px 10px 38px;
+      background: var(--bg-input);
+      border: 1px solid transparent;
+      border-radius: 8px;
+      color: white;
+      outline: none;
+    }
+
+    .search-box input:focus {
+      border-color: var(--brand-primary);
+    }
+
+    .filter-group select {
+      background: var(--bg-input);
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      outline: none;
+    }
+
+    /* --- DATA TABLE --- */
+    .table-container {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      border: 1px solid var(--border-color);
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th {
+      text-align: left;
+      padding: 1.2rem;
+      color: var(--text-muted);
+      font-weight: 500;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    td {
+      padding: 1.2rem;
+      border-bottom: 1px solid var(--border-color);
+      vertical-align: middle;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .status-pill {
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .status-pill.csv {
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+    }
+
+    .status-pill.sql {
+      background: rgba(168, 85, 247, 0.15);
+      color: #a855f7;
+    }
+
+    .status-pill.api {
+      background: rgba(34, 197, 94, 0.15);
+      color: #22c55e;
+    }
+
+    /* --- SETTINGS MODAL --- */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(5px);
+      z-index: 100;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+
+    .modal.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .modal-content {
+      background: var(--bg-card);
+      width: 450px;
+      padding: 2rem;
+      border-radius: var(--radius);
+      border: 1px solid var(--border-color);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+    }
+
+    .form-group {
+      margin-bottom: 1.2rem;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 10px;
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      color: white;
+      border-radius: 8px;
+    }
+
+    .modal-actions {
+      margin-top: 2rem;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .btn-cancel {
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px solid var(--border-color);
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .btn-save {
+      background: var(--brand-primary);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    /* Mobile Responsiveness */
+    @media (max-width: 768px) {
+      .sidebar {
+        transform: translateX(-100%);
+      }
+
+      .sidebar.active {
+        transform: translateX(0);
+      }
+
+      .main-content {
+        margin-left: 0;
+        width: 100%;
+        padding: 1rem;
+      }
+
+      .hero-card {
+        flex-direction: column;
+        text-align: center;
+        gap: 20px;
+      }
+
+      .hero-content {
+        max-width: 100%;
+      }
+
+      .controls-bar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      /* Toggle Button for Mobile */
+      .mobile-toggle {
+        display: block;
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: var(--brand-primary);
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        z-index: 50;
+        border: none;
+        color: white;
+        font-size: 1.2rem;
+        box-shadow: var(--shadow);
+        cursor: pointer;
+      }
+    }
+
+    @media (min-width: 769px) {
+      .mobile-toggle {
+        display: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Mobile Menu Toggle -->
+  <button class="mobile-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+
+  <!-- Sidebar -->
+  <nav class="sidebar" id="sidebar">
+    <div class="company-brand">
+      <!-- Logo customizável -->
+      <img src="https://ui-avatars.com/api/?name=Vortex+CRM&background=6366f1&color=fff" alt="Logo"
+        class="company-logo-img" id="sidebarLogo">
+      <span class="company-name" id="sidebarCompanyName">Vortex CRM</span>
+    </div>
+
+    <ul class="nav-links">
+      <li class="nav-item active"><i class="fas fa-chart-pie"></i> Dashboard</li>
+      <li class="nav-item"><i class="fas fa-users"></i> Vendedores</li>
+      <li class="nav-item"><i class="fas fa-file-invoice-dollar"></i> Relatórios</li>
+      <li class="nav-item" onclick="openModal('settingsModal')"><i class="fas fa-cog"></i> Configurar Empresa</li>
+      <li class="nav-item" onclick="openModal('integrationModal')"><i class="fas fa-plug"></i> Integrações</li>
+    </ul>
+
+    <div class="sponsors-area">
+      <span class="sponsor-label">Parceiros & Patrocinadores</span>
+      <div class="sponsor-list" id="sponsorsList">
+        <span class="sponsor-badge">AWS</span>
+        <span class="sponsor-badge">Salesforce</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <header>
+      <div class="page-title">
+        <h1>Dashboard de Vendas</h1>
+        <p>Bem-vindo de volta, Administrador.</p>
+      </div>
+      <div class="header-actions">
+        <button onclick="openModal('integrationModal')"><i class="fas fa-plus"></i> Nova Importação</button>
+      </div>
+    </header>
+
+    <!-- Dynamic Gamification Section -->
+    <section class="gamification-section" id="gamificationSection">
+      <!-- Injected via JS -->
+      <div class="hero-card">
+        <div class="confetti-bg"></div>
+        <div class="hero-content">
+          <div class="hero-badge"><i class="fas fa-lock"></i> Meta não atingida</div>
+          <div class="hero-stats">
+            <h2>Aguardando Campeão</h2>
+            <span>Meta do Mês: <strong id="goalDisplay">R$ 50.000,00</strong></span>
+          </div>
+        </div>
+        <div
+          style="width: 120px; height: 120px; background: rgba(255,255,255,0.05); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+          <i class="fas fa-user-secret" style="font-size: 3rem; color: var(--text-muted);"></i>
+        </div>
+      </div>
+    </section>
+
+    <!-- Filters -->
+    <div class="controls-bar">
+      <div class="search-box">
+        <i class="fas fa-search"></i>
+        <input type="text" id="searchInput" placeholder="Buscar por vendedor ou cliente..." onkeyup="filterTable()">
+      </div>
+      <div class="filter-group">
+        <select id="integrationFilter" onchange="filterTable()">
+          <option value="all">Todas as Origens</option>
+          <option value="CSV">Importação CSV</option>
+          <option value="SQL">Banco SQL</option>
+          <option value="API">Token API</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <select id="statusFilter" onchange="filterTable()">
+          <option value="all">Todos Status</option>
+          <option value="Completed">Concluído</option>
+          <option value="Pending">Pendente</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-container">
+      <table id="salesTable">
+        <thead>
+          <tr>
+            <th>Vendedor</th>
+            <th>Cliente</th>
+            <th>Valor</th>
+            <th>Origem (Integração)</th>
+            <th>Status</th>
+            <th>Data</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Rows populated by JS -->
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- Modal: Configuração da Empresa (Whitelabel) -->
+  <div class="modal" id="settingsModal">
+    <div class="modal-content">
+      <h2 style="margin-bottom: 1.5rem;">Configurar Identidade</h2>
+
+      <div class="form-group">
+        <label>Nome da Empresa</label>
+        <input type="text" id="companyNameInput" value="Vortex CRM">
+      </div>
+      <div class="form-group">
+        <label>Cor da Marca (Hex)</label>
+        <input type="color" id="brandColorInput" value="#6366f1" style="height: 50px; cursor: pointer;">
+      </div>
+      <div class="form-group">
+        <label>Meta Mensal (R$)</label>
+        <input type="number" id="monthlyGoalInput" value="50000">
+      </div>
+      <div class="form-group">
+        <label>Patrocinadores (Separar por vírgula)</label>
+        <input type="text" id="sponsorsInput" value="AWS, Salesforce">
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeModal('settingsModal')">Cancelar</button>
+        <button class="btn-save" onclick="saveSettings()">Salvar Alterações</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Simulação de Integrações -->
+  <div class="modal" id="integrationModal">
+    <div class="modal-content">
+      <h2 style="margin-bottom: 1rem;">Nova Integração</h2>
+      <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem;">Selecione o método de entrada de
+        dados.</p>
+
+      <div class="form-group">
+        <label>Fonte de Dados</label>
+        <select id="newIntegrationType"
+          style="width: 100%; padding: 10px; background: var(--bg-input); color: white; border: 1px solid var(--border-color); border-radius: 8px;">
+          <option value="CSV">Arquivo CSV</option>
+          <option value="SQL">Conexão SQL (Simulada)</option>
+          <option value="API">Token API (JSON)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Dados (Cole JSON ou Texto aqui para simular)</label>
+        <textarea id="mockDataInput" rows="5"
+          style="width: 100%; padding: 10px; background: var(--bg-input); color: white; border: 1px solid var(--border-color); border-radius: 8px; font-family: monospace;"
+          placeholder='[{"seller": "Ana", "value": 12000...}]'></textarea>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeModal('integrationModal')">Fechar</button>
+        <button class="btn-save" onclick="simulateIntegration()">Processar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /*
+     * CORE JAVASCRIPT
+     * Simulação de Backend, Lógica de Negócios e Manipulação de DOM
+     */
+
+    // Estado Global da Aplicação
+    const state = {
+      sales: [
+        { id: 1, seller: "Roberto Alves", role: "Closer", avatar: "https://i.pravatar.cc/150?u=1", client: "Tech Solutions", value: 15000, source: "SQL", status: "Completed", date: "2023-10-01" },
+        { id: 2, seller: "Ana Silva", role: "SDR", avatar: "https://i.pravatar.cc/150?u=2", client: "Mercado Local", value: 8500, source: "CSV", status: "Completed", date: "2023-10-02" },
+        { id: 3, seller: "Roberto Alves", role: "Closer", avatar: "https://i.pravatar.cc/150?u=1", client: "Big Corp", value: 42000, source: "API", status: "Pending", date: "2023-10-05" },
+        { id: 4, seller: "Carlos M.", role: "Account Exec", avatar: "https://i.pravatar.cc/150?u=3", client: "Startup X", value: 12000, source: "API", status: "Completed", date: "2023-10-06" },
+        { id: 5, seller: "Ana Silva", role: "SDR", avatar: "https://i.pravatar.cc/150?u=2", client: "Padaria Central", value: 5000, source: "CSV", status: "Completed", date: "2023-10-07" },
+      ],
+      config: {
+        companyName: "Vortex CRM",
+        brandColor: "#6366f1",
+        monthlyGoal: 50000,
+        sponsors: ["AWS", "Salesforce"]
+      }
+    };
+
+    // --- INICIALIZAÇÃO ---
+    document.addEventListener('DOMContentLoaded', () => {
+      renderTable(state.sales);
+      calculateEmployeeOfMonth();
+      updateThemeUI();
+    });
+
+    // --- LÓGICA DE GAMIFICAÇÃO (Funcionário do Mês) ---
+    function calculateEmployeeOfMonth() {
+      // 1. Agrupar vendas por vendedor
+      const sellers = {};
+
+      state.sales.forEach(sale => {
+        if (sale.status !== 'Completed') return; // Conta apenas vendas completas
+
+        if (!sellers[sale.seller]) {
+          sellers[sale.seller] = {
+            name: sale.seller,
+            role: sale.role,
+            avatar: sale.avatar,
+            total: 0,
+            count: 0
+          };
+        }
+        sellers[sale.seller].total += sale.value;
+        sellers[sale.seller].count += 1;
+      });
+
+      // 2. Encontrar o Top Performer
+      let topSeller = null;
+      let maxSales = -1;
+
+      Object.values(sellers).forEach(seller => {
+        if (seller.total > maxSales) {
+          maxSales = seller.total;
+          topSeller = seller;
+        }
+      });
+
+      // 3. Renderizar com base na Meta
+      const section = document.getElementById('gamificationSection');
+      const goal = state.config.monthlyGoal;
+
+      // Formatador de Moeda
+      const fmt = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+
+      document.getElementById('goalDisplay').innerText = fmt.format(goal);
+
+      if (topSeller && topSeller.total >= goal) {
+        // Bateu a meta!
+        section.innerHTML = `
+                    <div class="hero-card winner-active">
+                        <div class="confetti-bg"></div>
+                        <div class="hero-content">
+                            <div class="hero-badge" style="background: rgba(34, 197, 94, 0.2); color: #4ade80; border-color: #22c55e;">
+                                <i class="fas fa-crown"></i> Meta Batida!
+                            </div>
+                            <div class="hero-stats">
+                                <h2>${topSeller.name}</h2>
+                                <p style="color: var(--brand-accent); font-weight: 600; margin-bottom: 5px;">${topSeller.role}</p>
+                                <span>Total Vendido: <strong>${fmt.format(topSeller.total)}</strong></span>
+                                <div style="margin-top: 10px; font-size: 0.85rem; color: var(--text-muted);">
+                                    ${topSeller.count} vendas realizadas este mês
+                                </div>
+                            </div>
+                        </div>
+                        <img src="${topSeller.avatar}" alt="${topSeller.name}" class="hero-avatar">
+                    </div>
+                `;
+      } else {
+        // Ninguém bateu a meta ainda
+        let bestSoFar = topSeller ? `${topSeller.name} está liderando (${fmt.format(topSeller.total)})` : "Nenhuma venda registrada";
+
+        section.innerHTML = `
+                    <div class="hero-card">
+                        <div class="confetti-bg"></div>
+                        <div class="hero-content">
+                            <div class="hero-badge"><i class="fas fa-lock"></i> Meta em aberto</div>
+                            <div class="hero-stats">
+                                <h2>Procura-se um Campeão</h2>
+                                <span>Meta: <strong>${fmt.format(goal)}</strong></span>
+                                <p style="margin-top: 8px; font-size: 0.9rem; color: var(--brand-accent);">${bestSoFar}</p>
+                            </div>
+                        </div>
+                        <div style="width: 120px; height: 120px; background: rgba(255,255,255,0.05); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-trophy" style="font-size: 3rem; color: var(--text-muted); opacity: 0.5;"></i>
+                        </div>
+                    </div>
+                `;
+      }
+    }
+
+    // --- RENDERIZAÇÃO DA TABELA ---
+    function renderTable(data) {
+      const tbody = document.querySelector('#salesTable tbody');
+      tbody.innerHTML = '';
+
+      if (data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 2rem;">Nenhum dado encontrado.</td></tr>`;
+        return;
+      }
+
+      const fmt = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+
+      data.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <img src="${item.avatar}" style="width: 32px; height: 32px; border-radius: 50%;">
+                            <span>${item.seller}</span>
+                        </div>
+                    </td>
+                    <td>${item.client}</td>
+                    <td style="font-weight: 600;">${fmt.format(item.value)}</td>
+                    <td><span class="status-pill ${item.source.toLowerCase()}">${item.source}</span></td>
+                    <td><span style="color: ${item.status === 'Completed' ? '#4ade80' : '#facc15'}">• ${item.status === 'Completed' ? 'Concluído' : 'Pendente'}</span></td>
+                    <td style="color: var(--text-muted); font-size: 0.85rem;">${item.date}</td>
+                `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // --- SISTEMA DE FILTRAGEM ---
+    function filterTable() {
+      const searchText = document.getElementById('searchInput').value.toLowerCase();
+      const sourceFilter = document.getElementById('integrationFilter').value;
+      const statusFilter = document.getElementById('statusFilter').value;
+
+      const filtered = state.sales.filter(item => {
+        // Filtro Texto
+        const matchText = item.seller.toLowerCase().includes(searchText) ||
+          item.client.toLowerCase().includes(searchText);
+
+        // Filtro Origem
+        const matchSource = sourceFilter === 'all' || item.source === sourceFilter;
+
+        // Filtro Status
+        const matchStatus = statusFilter === 'all' || item.status === statusFilter;
+
+        return matchText && matchSource && matchStatus;
+      });
+
+      renderTable(filtered);
+    }
+
+    // --- CONFIGURAÇÃO DA EMPRESA (WHITELABEL) ---
+    function saveSettings() {
+      const name = document.getElementById('companyNameInput').value;
+      const color = document.getElementById('brandColorInput').value;
+      const goal = Number(document.getElementById('monthlyGoalInput').value);
+      const sponsors = document.getElementById('sponsorsInput').value.split(',').map(s => s.trim());
+
+      // Atualiza Estado
+      state.config.companyName = name;
+      state.config.brandColor = color;
+      state.config.monthlyGoal = goal;
+      state.config.sponsors = sponsors;
+
+      updateThemeUI();
+      calculateEmployeeOfMonth(); // Recalcula pois a meta mudou
+      closeModal('settingsModal');
+    }
+
+    function updateThemeUI() {
+      // Aplica Cor Principal na Variável CSS (Magia do Whitelabel)
+      document.documentElement.style.setProperty('--brand-primary', state.config.brandColor);
+
+      // Gera uma cor "Accent" mais clara baseada na primária (apenas visual, simplificado)
+      document.documentElement.style.setProperty('--brand-accent', state.config.brandColor + '80'); // 50% opacity hack
+
+      // Textos
+      document.getElementById('sidebarCompanyName').innerText = state.config.companyName;
+
+      // Avatar Logo (Gerador Dinâmico)
+      const cleanName = state.config.companyName.replace(' ', '+');
+      const cleanColor = state.config.brandColor.replace('#', '');
+      document.getElementById('sidebarLogo').src = `https://ui-avatars.com/api/?name=${cleanName}&background=${cleanColor}&color=fff`;
+
+      // Patrocinadores
+      const sponsorsContainer = document.getElementById('sponsorsList');
+      sponsorsContainer.innerHTML = state.config.sponsors.map(s => `<span class="sponsor-badge">${s}</span>`).join('');
+    }
+
+    // --- INTEGRAÇÕES MOCKADAS ---
+    function simulateIntegration() {
+      const type = document.getElementById('newIntegrationType').value;
+
+      // Aqui fingimos que estamos processando um CSV ou conectando no SQL
+      // Em produção, isso seria um fetch() ou FileReader()
+
+      const newSale = {
+        id: state.sales.length + 1,
+        seller: "Novo Usuário (Import)",
+        role: "Sales",
+        avatar: "https://i.pravatar.cc/150?u=99",
+        client: "Cliente Importado",
+        value: Math.floor(Math.random() * 20000) + 5000,
+        source: type,
+        status: "Completed",
+        date: new Date().toISOString().split('T')[0]
+      };
+
+      state.sales.unshift(newSale); // Adiciona ao topo
+
+      renderTable(state.sales);
+      calculateEmployeeOfMonth();
+      closeModal('integrationModal');
+
+      // Feedback Visual
+      alert(`Integração via ${type} realizada com sucesso! 1 registro adicionado.`);
+    }
+
+    // --- UTILITÁRIOS UI ---
+    function openModal(id) {
+      document.getElementById(id).classList.add('open');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('open');
+    }
+
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('active');
+    }
+
+    // Fecha modal ao clicar fora
+    window.onclick = function (event) {
+      if (event.target.classList.contains('modal')) {
+        event.target.classList.remove('open');
+      }
+    }
+  </script>
+</body>
+
+</html>

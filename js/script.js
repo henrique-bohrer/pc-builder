@@ -28,7 +28,214 @@
 
       // Listener para troca de tipo de integração
       document.getElementById('newIntegrationType').addEventListener('change', toggleIntegrationInputs);
+
+      // Inicia na view Dashboard
+      navigateTo('view-dashboard');
     });
+
+    // --- NAVEGAÇÃO DE VIEWS ---
+    function navigateTo(viewId) {
+        // Esconde todas as views
+        const views = ['view-dashboard', 'view-sellers', 'view-reports'];
+        views.forEach(id => {
+            document.getElementById(id).classList.add('hidden');
+        });
+
+        // Mostra a view alvo
+        document.getElementById(viewId).classList.remove('hidden');
+
+        // Atualiza Sidebar
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+
+        const navMap = {
+            'view-dashboard': 'nav-dashboard',
+            'view-sellers': 'nav-sellers',
+            'view-reports': 'nav-reports'
+        };
+
+        const navId = navMap[viewId];
+        if (navId) {
+            document.getElementById(navId).classList.add('active');
+        }
+
+        // Título da Página
+        const titles = {
+            'view-dashboard': 'Dashboard de Vendas',
+            'view-sellers': 'Ranking de Vendedores',
+            'view-reports': 'Relatórios de Performance'
+        };
+        document.getElementById('pageTitleText').innerText = titles[viewId];
+
+        // Carrega dados específicos da view
+        if (viewId === 'view-sellers') {
+            renderSellersView();
+        } else if (viewId === 'view-reports') {
+            renderReportsView();
+        }
+    }
+
+    // --- VIEW: VENDEDORES ---
+    function renderSellersView() {
+        // 1. Agrupar dados
+        const sellers = {};
+        state.sales.forEach(sale => {
+            if (sale.status !== 'Completed') return;
+
+            if (!sellers[sale.seller]) {
+                sellers[sale.seller] = {
+                    name: sale.seller,
+                    role: sale.role,
+                    avatar: sale.avatar,
+                    total: 0,
+                    count: 0
+                };
+            }
+            sellers[sale.seller].total += sale.value;
+            sellers[sale.seller].count += 1;
+        });
+
+        // 2. Converter para Array e Ordenar
+        const sortedSellers = Object.values(sellers).sort((a, b) => b.total - a.total);
+
+        // 3. Renderizar Tabela
+        const tbody = document.querySelector('#sellersTable tbody');
+        tbody.innerHTML = '';
+
+        const fmt = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+
+        sortedSellers.forEach((s, index) => {
+            const ticketMedio = s.count > 0 ? s.total / s.count : 0;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><span style="font-weight: 700; color: ${index === 0 ? '#fbbf24' : 'var(--text-muted)'}">#${index + 1}</span></td>
+                <td>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <img src="${s.avatar}" style="width: 32px; height: 32px; border-radius: 50%;">
+                        <span>${s.name}</span>
+                    </div>
+                </td>
+                <td>${s.role}</td>
+                <td style="font-weight: 600; color: #4ade80;">${fmt.format(s.total)}</td>
+                <td>${s.count}</td>
+                <td>${fmt.format(ticketMedio)}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // --- VIEW: RELATÓRIOS (Chart.js) ---
+    let salesChartInstance = null;
+
+    function renderReportsView() {
+        const sellerFilter = document.getElementById('reportSellerFilter').value;
+        const dateFilter = document.getElementById('reportDateFilter').value;
+
+        // 1. Filtrar Dados
+        let filteredData = state.sales.filter(s => s.status === 'Completed');
+
+        // Filtro de Vendedor
+        if (sellerFilter !== 'all') {
+            filteredData = filteredData.filter(s => s.seller === sellerFilter);
+        }
+
+        // Filtro de Data (Simples)
+        const today = new Date();
+        if (dateFilter === 'last7') {
+            const sevenDaysAgo = new Date();
+            sevenDaysAgo.setDate(today.getDate() - 7);
+            filteredData = filteredData.filter(s => new Date(s.date) >= sevenDaysAgo);
+        } else if (dateFilter === 'last30') {
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(today.getDate() - 30);
+            filteredData = filteredData.filter(s => new Date(s.date) >= thirtyDaysAgo);
+        }
+
+        // 2. Prepara Select de Vendedores (se vazio)
+        const sellerSelect = document.getElementById('reportSellerFilter');
+        if (sellerSelect.options.length === 1) {
+            const uniqueSellers = [...new Set(state.sales.map(s => s.seller))];
+            uniqueSellers.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s;
+                opt.innerText = s;
+                sellerSelect.appendChild(opt);
+            });
+        }
+
+        // 3. Agrupar Dados para o Gráfico (Por Data e Vendedor)
+        // Eixo X: Datas Ordenadas
+        const uniqueDates = [...new Set(filteredData.map(s => s.date))].sort();
+
+        // Datasets: Um por vendedor
+        const sellersInView = [...new Set(filteredData.map(s => s.seller))];
+        const datasets = sellersInView.map(sellerName => {
+            const salesByDate = uniqueDates.map(date => {
+                const totalOnDate = filteredData
+                    .filter(s => s.seller === sellerName && s.date === date)
+                    .reduce((sum, s) => sum + s.value, 0);
+                return totalOnDate;
+            });
+
+            // Gerar cor aleatória consistente (hash simples do nome)
+            let hash = 0;
+            for (let i = 0; i < sellerName.length; i++) {
+                hash = sellerName.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            const c = (hash & 0x00FFFFFF).toString(16).toUpperCase();
+            const color = "#" + "00000".substring(0, 6 - c.length) + c;
+
+            return {
+                label: sellerName,
+                data: salesByDate,
+                borderColor: color,
+                backgroundColor: color + '33', // Opacidade
+                tension: 0.3,
+                fill: false
+            };
+        });
+
+        // 4. Renderizar Gráfico
+        const ctx = document.getElementById('salesChart').getContext('2d');
+
+        if (salesChartInstance) {
+            salesChartInstance.destroy();
+        }
+
+        // Caso não haja dados
+        if (uniqueDates.length === 0) {
+            // Apenas limpa ou mostra msg
+            return;
+        }
+
+        salesChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: uniqueDates,
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: { color: '#94a3b8' }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#334155' },
+                        ticks: { color: '#94a3b8' }
+                    },
+                    x: {
+                        grid: { color: '#334155' },
+                        ticks: { color: '#94a3b8' }
+                    }
+                }
+            }
+        });
+    }
 
     // --- LÓGICA DE GAMIFICAÇÃO (Funcionário do Mês) ---
     function calculateEmployeeOfMonth() {

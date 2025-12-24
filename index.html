@@ -16,6 +16,9 @@
   <!-- PapaParse para CSV -->
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.0/papaparse.min.js"></script>
 
+  <!-- Chart.js para Gráficos -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <!-- Estilos Externos -->
   <link rel="stylesheet" href="css/style.css">
 </head>
@@ -35,9 +38,9 @@
     </div>
 
     <ul class="nav-links">
-      <li class="nav-item active"><i class="fas fa-chart-pie"></i> Dashboard</li>
-      <li class="nav-item"><i class="fas fa-users"></i> Vendedores</li>
-      <li class="nav-item"><i class="fas fa-file-invoice-dollar"></i> Relatórios</li>
+      <li class="nav-item active" id="nav-dashboard" onclick="navigateTo('view-dashboard')"><i class="fas fa-chart-pie"></i> Dashboard</li>
+      <li class="nav-item" id="nav-sellers" onclick="navigateTo('view-sellers')"><i class="fas fa-users"></i> Vendedores</li>
+      <li class="nav-item" id="nav-reports" onclick="navigateTo('view-reports')"><i class="fas fa-file-invoice-dollar"></i> Relatórios</li>
       <li class="nav-item" onclick="openModal('settingsModal')"><i class="fas fa-cog"></i> Configurar Empresa</li>
       <li class="nav-item" onclick="openModal('integrationModal')"><i class="fas fa-plug"></i> Integrações</li>
     </ul>
@@ -55,7 +58,7 @@
   <main class="main-content">
     <header>
       <div class="page-title">
-        <h1>Dashboard de Vendas</h1>
+        <h1 id="pageTitleText">Dashboard de Vendas</h1>
         <p>Bem-vindo de volta, Administrador.</p>
       </div>
       <div class="header-actions">
@@ -63,66 +66,115 @@
       </div>
     </header>
 
-    <!-- Dynamic Gamification Section -->
-    <section class="gamification-section" id="gamificationSection">
-      <!-- Injected via JS -->
-      <div class="hero-card">
-        <div class="confetti-bg"></div>
-        <div class="hero-content">
-          <div class="hero-badge"><i class="fas fa-lock"></i> Meta não atingida</div>
-          <div class="hero-stats">
-            <h2>Aguardando Campeão</h2>
-            <span>Meta do Mês: <strong id="goalDisplay">R$ 50.000,00</strong></span>
+    <!-- VIEW: DASHBOARD (Default) -->
+    <section id="view-dashboard">
+      <!-- Dynamic Gamification Section -->
+      <section class="gamification-section" id="gamificationSection">
+        <!-- Injected via JS -->
+        <div class="hero-card">
+          <div class="confetti-bg"></div>
+          <div class="hero-content">
+            <div class="hero-badge"><i class="fas fa-lock"></i> Meta não atingida</div>
+            <div class="hero-stats">
+              <h2>Aguardando Campeão</h2>
+              <span>Meta do Mês: <strong id="goalDisplay">R$ 50.000,00</strong></span>
+            </div>
+          </div>
+          <div
+            style="width: 120px; height: 120px; background: rgba(255,255,255,0.05); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+            <i class="fas fa-user-secret" style="font-size: 3rem; color: var(--text-muted);"></i>
           </div>
         </div>
-        <div
-          style="width: 120px; height: 120px; background: rgba(255,255,255,0.05); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-          <i class="fas fa-user-secret" style="font-size: 3rem; color: var(--text-muted);"></i>
+      </section>
+
+      <!-- Filters -->
+      <div class="controls-bar">
+        <div class="search-box">
+          <i class="fas fa-search"></i>
+          <input type="text" id="searchInput" placeholder="Buscar por vendedor ou cliente..." onkeyup="filterTable()">
         </div>
+        <div class="filter-group">
+          <select id="integrationFilter" onchange="filterTable()">
+            <option value="all">Todas as Origens</option>
+            <option value="CSV">Importação CSV</option>
+            <option value="SQL">Banco SQL</option>
+            <option value="API">Token API</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <select id="statusFilter" onchange="filterTable()">
+            <option value="all">Todos Status</option>
+            <option value="Completed">Concluído</option>
+            <option value="Pending">Pendente</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="table-container">
+        <table id="salesTable">
+          <thead>
+            <tr>
+              <th>Vendedor</th>
+              <th>Cliente</th>
+              <th>Valor</th>
+              <th>Origem (Integração)</th>
+              <th>Status</th>
+              <th>Data</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Rows populated by JS -->
+          </tbody>
+        </table>
       </div>
     </section>
 
-    <!-- Filters -->
-    <div class="controls-bar">
-      <div class="search-box">
-        <i class="fas fa-search"></i>
-        <input type="text" id="searchInput" placeholder="Buscar por vendedor ou cliente..." onkeyup="filterTable()">
-      </div>
-      <div class="filter-group">
-        <select id="integrationFilter" onchange="filterTable()">
-          <option value="all">Todas as Origens</option>
-          <option value="CSV">Importação CSV</option>
-          <option value="SQL">Banco SQL</option>
-          <option value="API">Token API</option>
-        </select>
-      </div>
-      <div class="filter-group">
-        <select id="statusFilter" onchange="filterTable()">
-          <option value="all">Todos Status</option>
-          <option value="Completed">Concluído</option>
-          <option value="Pending">Pendente</option>
-        </select>
-      </div>
-    </div>
+    <!-- VIEW: VENDEDORES -->
+    <section id="view-sellers" class="hidden">
+        <div class="table-container">
+            <table id="sellersTable">
+                <thead>
+                    <tr>
+                        <th>Ranking</th>
+                        <th>Vendedor</th>
+                        <th>Cargo</th>
+                        <th>Vendas Totais (R$)</th>
+                        <th>Qtd. Vendas</th>
+                        <th>Ticket Médio</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Injected via JS -->
+                </tbody>
+            </table>
+        </div>
+    </section>
 
-    <!-- Table -->
-    <div class="table-container">
-      <table id="salesTable">
-        <thead>
-          <tr>
-            <th>Vendedor</th>
-            <th>Cliente</th>
-            <th>Valor</th>
-            <th>Origem (Integração)</th>
-            <th>Status</th>
-            <th>Data</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- Rows populated by JS -->
-        </tbody>
-      </table>
-    </div>
+    <!-- VIEW: RELATÓRIOS -->
+    <section id="view-reports" class="hidden">
+        <div class="controls-bar">
+            <div class="filter-group">
+                <label style="color: var(--text-muted); font-size: 0.8rem; margin-right: 10px;">Filtrar Vendedor:</label>
+                <select id="reportSellerFilter" onchange="renderReportsView()">
+                    <option value="all">Todos</option>
+                    <!-- Populated by JS -->
+                </select>
+            </div>
+            <div class="filter-group">
+                <label style="color: var(--text-muted); font-size: 0.8rem; margin-right: 10px;">Período:</label>
+                <select id="reportDateFilter" onchange="renderReportsView()">
+                   <option value="all">Todo o Período</option>
+                   <option value="last7">Últimos 7 dias</option>
+                   <option value="last30">Últimos 30 dias</option>
+                </select>
+            </div>
+        </div>
+        <div class="bg-card" style="background: var(--bg-card); padding: 20px; border-radius: var(--radius); border: 1px solid var(--border-color); height: 500px;">
+            <canvas id="salesChart"></canvas>
+        </div>
+    </section>
+
   </main>
 
   <!-- Modal: Configuração da Empresa (Whitelabel) -->

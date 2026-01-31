@@ -1,0 +1,503 @@
+    /* * DESIGN SYSTEM & THEME ENGINE
+         * Usamos variáveis CSS para permitir a personalização (Whitelabel) em tempo real.
+         */
+    :root {
+      /* Cores Base - Dark Mode Moderno */
+      --bg-body: #0f172a;
+      /* Slate 900 */
+      --bg-sidebar: #1e293b;
+      /* Slate 800 */
+      --bg-card: #1e293b;
+      --bg-input: #334155;
+
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border-color: #334155;
+
+      /* Variáveis de Marca (Customizáveis pela Empresa) */
+      --brand-primary: #6366f1;
+      /* Indigo 500 (Default) */
+      --brand-accent: #818cf8;
+
+      /* Utilitários */
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --radius: 12px;
+      --transition: all 0.3s ease;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-body);
+      color: var(--text-main);
+      display: flex;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* --- SIDEBAR --- */
+    .sidebar {
+      width: 260px;
+      background-color: var(--bg-sidebar);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      padding: 1.5rem;
+      position: fixed;
+      height: 100%;
+      z-index: 10;
+      transition: var(--transition);
+    }
+
+    .company-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 3rem;
+    }
+
+    .company-logo-img {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      background: var(--brand-primary);
+      object-fit: cover;
+    }
+
+    .company-name {
+      font-weight: 700;
+      font-size: 1.1rem;
+      letter-spacing: -0.5px;
+    }
+
+    .nav-links {
+      list-style: none;
+    }
+
+    .nav-links li {
+      margin-bottom: 0.5rem;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      border-radius: var(--radius);
+      color: var(--text-muted);
+      text-decoration: none;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .nav-item:hover,
+    .nav-item.active {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--brand-primary);
+    }
+
+    .nav-item i {
+      width: 20px;
+      text-align: center;
+    }
+
+    .sponsors-area {
+      margin-top: auto;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .sponsor-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+
+    .sponsor-list {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .sponsor-badge {
+      background: #334155;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+    }
+
+    /* --- MAIN CONTENT --- */
+    .main-content {
+      flex: 1;
+      margin-left: 260px;
+      /* Sidebar width */
+      padding: 2rem;
+      width: calc(100% - 260px);
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .page-title h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+    }
+
+    .page-title p {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-top: 4px;
+    }
+
+    .header-actions button {
+      background: var(--brand-primary);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: var(--transition);
+    }
+
+    .header-actions button:hover {
+      filter: brightness(1.1);
+      box-shadow: 0 0 15px var(--brand-primary);
+    }
+
+    /* --- EMPLOYEE OF THE MONTH (Gamification) --- */
+    .gamification-section {
+      margin-bottom: 2.5rem;
+    }
+
+    .hero-card {
+      background: linear-gradient(135deg, var(--bg-card) 0%, rgba(30, 41, 59, 0.8) 100%);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-card.winner-active {
+      border: 1px solid var(--brand-primary);
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, var(--bg-card) 100%);
+    }
+
+    .hero-content {
+      z-index: 2;
+      max-width: 60%;
+    }
+
+    .hero-badge {
+      background: rgba(255, 215, 0, 0.15);
+      color: #fbbf24;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 1rem;
+      border: 1px solid rgba(255, 215, 0, 0.3);
+    }
+
+    .hero-stats h2 {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .hero-stats span {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+    }
+
+    .hero-stats strong {
+      color: var(--text-main);
+    }
+
+    .hero-avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      border: 4px solid var(--brand-primary);
+      object-fit: cover;
+      box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+      z-index: 2;
+    }
+
+    .confetti-bg {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 100%;
+      height: 100%;
+      background-image: radial-gradient(var(--brand-primary) 1px, transparent 1px);
+      background-size: 20px 20px;
+      opacity: 0.1;
+      z-index: 1;
+    }
+
+    /* --- FILTERS & TOOLS --- */
+    .controls-bar {
+      background: var(--bg-card);
+      padding: 1rem;
+      border-radius: var(--radius);
+      margin-bottom: 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: center;
+      border: 1px solid var(--border-color);
+    }
+
+    .search-box {
+      flex: 1;
+      position: relative;
+      min-width: 250px;
+    }
+
+    .search-box i {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 10px 10px 10px 38px;
+      background: var(--bg-input);
+      border: 1px solid transparent;
+      border-radius: 8px;
+      color: white;
+      outline: none;
+    }
+
+    .search-box input:focus {
+      border-color: var(--brand-primary);
+    }
+
+    .filter-group select {
+      background: var(--bg-input);
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      outline: none;
+    }
+
+    /* --- DATA TABLE --- */
+    .table-container {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      border: 1px solid var(--border-color);
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th {
+      text-align: left;
+      padding: 1.2rem;
+      color: var(--text-muted);
+      font-weight: 500;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    td {
+      padding: 1.2rem;
+      border-bottom: 1px solid var(--border-color);
+      vertical-align: middle;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .status-pill {
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .status-pill.csv {
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+    }
+
+    .status-pill.sql {
+      background: rgba(168, 85, 247, 0.15);
+      color: #a855f7;
+    }
+
+    .status-pill.api {
+      background: rgba(34, 197, 94, 0.15);
+      color: #22c55e;
+    }
+
+    /* --- SETTINGS MODAL --- */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(5px);
+      z-index: 100;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+
+    .modal.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .modal-content {
+      background: var(--bg-card);
+      width: 450px;
+      padding: 2rem;
+      border-radius: var(--radius);
+      border: 1px solid var(--border-color);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+    }
+
+    .form-group {
+      margin-bottom: 1.2rem;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .form-group input, .form-group textarea {
+      width: 100%;
+      padding: 10px;
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      color: white;
+      border-radius: 8px;
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    .modal-actions {
+      margin-top: 2rem;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .btn-cancel {
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px solid var(--border-color);
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .btn-save {
+      background: var(--brand-primary);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    /* Mobile Responsiveness */
+    @media (max-width: 768px) {
+      .sidebar {
+        transform: translateX(-100%);
+      }
+
+      .sidebar.active {
+        transform: translateX(0);
+      }
+
+      .main-content {
+        margin-left: 0;
+        width: 100%;
+        padding: 1rem;
+      }
+
+      .hero-card {
+        flex-direction: column;
+        text-align: center;
+        gap: 20px;
+      }
+
+      .hero-content {
+        max-width: 100%;
+      }
+
+      .controls-bar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      /* Toggle Button for Mobile */
+      .mobile-toggle {
+        display: block;
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: var(--brand-primary);
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        z-index: 50;
+        border: none;
+        color: white;
+        font-size: 1.2rem;
+        box-shadow: var(--shadow);
+        cursor: pointer;
+      }
+    }
+
+    @media (min-width: 769px) {
+      .mobile-toggle {
+        display: none;
+      }
+    }
